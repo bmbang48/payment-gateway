@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Donation;
 
+
 class DonationController extends Controller
 {
 
@@ -19,6 +20,12 @@ class DonationController extends Controller
     //
     public function index()
     {
+        $donations = Donation::orderBy('id', 'DESC')->paginate(5);
+        return view('welcome', compact('donations'));
+    }
+
+    public function create()
+    {
         return view('donation');
     }
 
@@ -26,8 +33,8 @@ class DonationController extends Controller
     {
         \DB::transaction(function () use ($request) {
             $donation = Donation::create([
-                'donation_code' => 'SANDBOX-' . uniqid(),
                 'donor_name' => $request->donor_name,
+                'donation_code' => "SANBOX-" . uniqid(),
                 'donor_email' => $request->donor_email,
                 'donation_type' => $request->donation_type,
                 'amount' => floatval($request->amount),
@@ -86,15 +93,15 @@ class DonationController extends Controller
                     }
                 }
             } elseif ($transactionStatus == 'sattlement') {
-                $donation->setStatusSuccess();
+                $donation->status = 'success';
             } elseif ($transactionStatus == 'pending') {
-                $donation->setStatusPending();
+                $donation->status = 'pending';
             } elseif ($transactionStatus == 'deny') {
-                $donation->setStatusFailed();
+                $donation->status = 'deny';
             } elseif ($transactionStatus == 'expire') {
-                $donation->setStatusExpired();
+                $donation->status = 'expire';
             } elseif ($transactionStatus == 'cancel') {
-                $donation->setStatusFailed();
+                $donation->status = 'cancel';
             }
         });
 
